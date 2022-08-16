@@ -9,6 +9,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+var configPath string
+
 type IdentifyConfig struct {
 	UserAgent string `toml:"user_agent"`
 	Os        string `toml:"os"`
@@ -44,6 +46,12 @@ type Config struct {
 	Identify               IdentifyConfig `toml:"identify"`
 	Theme                  ThemeConfig    `toml:"theme"`
 	Keys                   KeysConfig     `toml:"keys"`
+	Startup                StartupConfig  `toml:"startup"`
+}
+
+type StartupConfig struct {
+	Guild   string `toml:"guild"`
+	Channel string `toml:"channel"`
 }
 
 func New() *Config {
@@ -80,6 +88,8 @@ func New() *Config {
 }
 
 func (c *Config) Load(path string) error {
+	configPath = path
+
 	// Create directories that do not exist and are mentioned in the path recursively.
 	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
@@ -105,6 +115,17 @@ func (c *Config) Load(path string) error {
 
 	_, err = toml.NewDecoder(f).Decode(&c)
 	return err
+}
+
+func (c *Config) Save() error {
+	// If the configuration file does not exist already, create a new file; otherwise, open the existing file with read-write flag.
+	f, err := os.OpenFile(configPath, os.O_RDWR|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return toml.NewEncoder(f).Encode(c)
 }
 
 func DefaultPath() string {

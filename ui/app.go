@@ -43,6 +43,14 @@ func NewApp(token string, c *config.Config) *App {
 	return app
 }
 
+func (app *App) Startup() {
+	if app.Config.Startup.Channel == "" || app.Config.Startup.Guild == "" {
+		app.SetFocus(app.GuildsList)
+		return
+	}
+	app.SetFocus(app.GuildsList)
+}
+
 func (app *App) Connect() error {
 	// For user accounts, all of the guilds, the user is in, are dispatched in the READY gateway event.
 	// Whereas, for bot accounts, the guilds are dispatched discretely in the GUILD_CREATE gateway events.
@@ -122,7 +130,13 @@ func (app *App) onSessionReady(_ *astatine.Session, r *astatine.Ready) {
 
 	for _, g := range r.Guilds {
 		app.GuildsList.AddItem(g.Name, "", 0, nil)
+		if g.ID == app.Config.Startup.Guild {
+			idx := app.GuildsList.List.GetItemCount() - 1
+			app.GuildsList.List.SetCurrentItem(idx)
+			app.GuildsList.onSelected(idx, g.Name, "", ' ')
+		}
 	}
+
 }
 
 func (app *App) onSessionGuildCreate(_ *astatine.Session, g *astatine.GuildCreate) {

@@ -196,6 +196,17 @@ func (mtv *MessagesTextView) onInputCapture(e *tcell.EventKey) *tcell.EventKey {
 			mtv.app.SetRoot(mtv.app.MainFlex, true)
 			mtv.app.SetFocus(mtv.app.MessagesTextView)
 		})
+		// todo: move to action on channel (none yet)
+		actionsList.AddItem("Set As Startup Channel", "", 's', func() {
+			mtv.app.Config.Startup.Channel = mtv.app.SelectedChannel.Name //m.ChannelID
+			mtv.app.Config.Startup.Guild = mtv.app.SelectedChannel.GuildID
+			if err := mtv.app.Config.Save(); err != nil {
+				return
+			}
+
+			mtv.app.SetRoot(mtv.app.MainFlex, true)
+			mtv.app.SetFocus(mtv.app.MessagesTextView)
+		})
 
 		mtv.app.SetRoot(actionsList, true)
 		return nil
